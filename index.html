@@ -3,21 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Points Calculator</title>
+    <title>The Mightiest Governor points calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+            background-color: #f3f4f6; /* Light gray background for the page */
+            display: flex; 
+            flex-direction: column; 
+            min-height: 100vh; 
         }
         .calculator-container {
             background-color: white;
             padding: 2rem;
             border-radius: 0.75rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            max-width: 750px; 
+            max-width: 850px; /* MODIFIED: Increased width */
             margin: 2rem auto;
+            flex-grow: 1; 
         }
         .category-section {
             border: 1px solid #e5e7eb; 
@@ -73,13 +77,13 @@
             padding-bottom: 0.75rem;
         }
         .sub-section-title {
-            font-size: 1.125rem; /* 18px */
+            font-size: 1.125rem; 
             font-weight: 600;
-            color: #374151; /* Tailwind gray-700 */
+            color: #374151; 
             margin-top: 1.5rem;
             margin-bottom: 1rem;
             padding-bottom: 0.5rem;
-            border-bottom: 1px solid #f3f4f6; /* Tailwind gray-100 */
+            border-bottom: 1px solid #f3f4f6; 
         }
         .app-title {
             font-size: 2rem; 
@@ -131,6 +135,15 @@
         .flex-grow {
             flex-grow: 1;
         }
+        .app-footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.875rem; 
+            color: #6b7280; 
+            background-color: #f9fafb; 
+            border-top: 1px solid #e5e7eb; 
+            margin-top: auto; 
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -138,7 +151,7 @@
 </head>
 <body>
     <div id="app" class="calculator-container">
-        <h1 class="app-title">Universal Points Calculator</h1>
+        <h1 class="app-title">The Mightiest Governor points calculator</h1>
 
         <div class="category-section">
             <h2 class="section-title">Day 1: Tribes</h2>
@@ -583,9 +596,11 @@
         </div>
         
         <div v-if="grandTotalPointsRaw >= 0" class="grand-total-points-display">
-            Grand Total Points: {{ formattedGrandTotalPoints }}
+            Estimated total points: {{ formattedGrandTotalPoints }}
         </div>
-    </div>
+    </div> <footer class="app-footer">
+        <p>This is a community-driven tool created by a fan, for fans. It is not affiliated with, endorsed, or sponsored by Level Infinite, Xbox Game Studios, or any official Age of Empires Mobile entities. All game content, trademarks, and service marks are the property of their respective owners.</p>
+    </footer>
 
     <script>
         const { createApp, computed, reactive, watch } = Vue;
@@ -669,7 +684,7 @@
                         legendaryHeroMedals: null,
                         epicScrolls: null,
                         legendaryScrolls: null,
-                        pointsPerUnit: { // Suffixes indicate original day for clarity
+                        pointsPerUnit: { 
                             resourcePointRateD3: 0.01, 
                             adventSpinD3: 1000,        
                             fineCraftD4: 2000,         
@@ -706,24 +721,9 @@
                 day2_heroGrowth_forgingDurationEpicMinutes() { return this.parseHHMMToMinutes(this.day2_heroGrowth.forgingDurationEpicStr); },
                 day2_heroGrowth_forgingDurationLegendaryMinutes() { return this.parseHHMMToMinutes(this.day2_heroGrowth.forgingDurationLegendaryStr); },
                 day2_heroGrowth_speedUpsTotalMinutes() { return this.parseDDHHMMToMinutes(this.day2_heroGrowth.speedUpsStr); },
-                day2_heroGrowth_hasMinimumInputsForSuggestion() { // NEW
-                    const hasMeteor = (Number(this.day2_heroGrowth.meteorResources) || 0) > 0;
-                    const hasTime = this.day2_heroGrowth_forgingDurationRareMinutes > 0 || 
-                                  this.day2_heroGrowth_forgingDurationEpicMinutes > 0 || 
-                                  this.day2_heroGrowth_forgingDurationLegendaryMinutes > 0;
-                    return hasMeteor && hasTime;
-                },
-                day2_heroGrowth_hasAnyGearQuantities() { // NEW
-                    return (Number(this.day2_heroGrowth.rareGearQuantity) || 0) > 0 ||
-                           (Number(this.day2_heroGrowth.epicGearQuantity) || 0) > 0 ||
-                           (Number(this.day2_heroGrowth.legendaryGearQuantity) || 0) > 0;
-                },
-                day2_heroGrowth_suggestedItems() { 
-                    // Only run full logic if minimum inputs are met
-                    if (!this.day2_heroGrowth_hasMinimumInputsForSuggestion) {
-                        return { rare: 0, epic: 0, legendary: 0, remainingMeteorResources: Number(this.day2_heroGrowth.meteorResources) || 0, remainingSpeedUpMinutes: this.day2_heroGrowth_speedUpsTotalMinutes };
-                    }
-                    const Q_l = Number(this.day2_heroGrowth.legendaryGearQuantity) || 0; const C_l = this.day2_heroGrowth.costs.legendaryGear; const T_l = this.day2_heroGrowth_forgingDurationLegendaryMinutes; const P_l = this.day2_heroGrowth.pointsPerUnit.legendaryGear; const Q_e = Number(this.day2_heroGrowth.epicGearQuantity) || 0; const C_e = this.day2_heroGrowth.costs.epicGear; const T_e = this.day2_heroGrowth_forgingDurationEpicMinutes; const P_e = this.day2_heroGrowth.pointsPerUnit.epicGear; const Q_r = Number(this.day2_heroGrowth.rareGearQuantity) || 0; const C_r = this.day2_heroGrowth.costs.rareGear; const T_r = this.day2_heroGrowth_forgingDurationRareMinutes; const P_r = this.day2_heroGrowth.pointsPerUnit.rareGear; const M_total = Number(this.day2_heroGrowth.meteorResources) || 0; const S_total = this.day2_heroGrowth_speedUpsTotalMinutes; let maxPoints = 0; let bestSuggestion = { rare: 0, epic: 0, legendary: 0 }; let finalRemainingMeteorResources = M_total; let finalRemainingSpeedUpMinutes = S_total; const limit_l_qty = Q_l; const limit_l_meteor = (C_l > 0) ? Math.floor(M_total / C_l) : (M_total >=0 ? Infinity : 0); const limit_l_time = (T_l > 0) ? Math.floor(S_total / T_l) : (S_total >= 0 ? Infinity : 0); const max_nl = Math.max(0, Math.min(limit_l_qty, limit_l_meteor, limit_l_time)); for (let nl = 0; nl <= max_nl; nl++) { const costM_l = nl * C_l; const costT_l = nl * T_l; const points_l = nl * P_l; const remM_after_l = M_total - costM_l; const remT_after_l = S_total - costT_l; const limit_e_qty = Q_e; const limit_e_meteor = (C_e > 0) ? Math.floor(remM_after_l / C_e) : (remM_after_l >= 0 ? Infinity : 0); const limit_e_time = (T_e > 0) ? Math.floor(remT_after_l / T_e) : (remT_after_l >= 0 ? Infinity : 0); const max_ne = Math.max(0, Math.min(limit_e_qty, limit_e_meteor, limit_e_time)); for (let ne = 0; ne <= max_ne; ne++) { const costM_e = ne * C_e; const costT_e = ne * T_e; const points_e = ne * P_e; const remM_after_e = remM_after_l - costM_e; const remT_after_e = remT_after_l - costT_e; const limit_r_qty = Q_r; const limit_r_meteor = (C_r > 0) ? Math.floor(remM_after_e / C_r) : (remM_after_e >= 0 ? Infinity : 0); const limit_r_time = (T_r > 0) ? Math.floor(remT_after_e / T_r) : (remT_after_e >= 0 ? Infinity : 0); let nr = Math.max(0, Math.min(limit_r_qty, limit_r_meteor, limit_r_time)); const points_r = nr * P_r; const currentTotalPoints = points_l + points_e + points_r; if (currentTotalPoints > maxPoints) { maxPoints = currentTotalPoints; bestSuggestion = { legendary: nl, epic: ne, rare: nr }; finalRemainingMeteorResources = remM_after_e - (nr * C_r); finalRemainingSpeedUpMinutes = remT_after_e - (nr * T_r); } else if (currentTotalPoints === maxPoints) { if (nl > bestSuggestion.legendary) { bestSuggestion = { legendary: nl, epic: ne, rare: nr }; finalRemainingMeteorResources = remM_after_e - (nr * C_r); finalRemainingSpeedUpMinutes = remT_after_e - (nr * T_r); } else if (nl === bestSuggestion.legendary && ne > bestSuggestion.epic) { bestSuggestion = { legendary: nl, epic: ne, rare: nr }; finalRemainingMeteorResources = remM_after_e - (nr * C_r); finalRemainingSpeedUpMinutes = remT_after_e - (nr * T_r); } } } } return { ...bestSuggestion, remainingMeteorResources: Math.max(0, finalRemainingMeteorResources), remainingSpeedUpMinutes: Math.max(0, finalRemainingSpeedUpMinutes)}; },
+                day2_heroGrowth_hasMinimumInputsForSuggestion() { const hasMeteor = (Number(this.day2_heroGrowth.meteorResources) || 0) > 0; const hasTime = this.day2_heroGrowth_forgingDurationRareMinutes > 0 || this.day2_heroGrowth_forgingDurationEpicMinutes > 0 || this.day2_heroGrowth_forgingDurationLegendaryMinutes > 0; return hasMeteor && hasTime;},
+                day2_heroGrowth_hasAnyGearQuantities() { return (Number(this.day2_heroGrowth.rareGearQuantity) || 0) > 0 || (Number(this.day2_heroGrowth.epicGearQuantity) || 0) > 0 || (Number(this.day2_heroGrowth.legendaryGearQuantity) || 0) > 0;},
+                day2_heroGrowth_suggestedItems() { if (!this.day2_heroGrowth_hasMinimumInputsForSuggestion) { return { rare: 0, epic: 0, legendary: 0, remainingMeteorResources: Number(this.day2_heroGrowth.meteorResources) || 0, remainingSpeedUpMinutes: this.day2_heroGrowth_speedUpsTotalMinutes }; } const Q_l = Number(this.day2_heroGrowth.legendaryGearQuantity) || 0; const C_l = this.day2_heroGrowth.costs.legendaryGear; const T_l = this.day2_heroGrowth_forgingDurationLegendaryMinutes; const P_l = this.day2_heroGrowth.pointsPerUnit.legendaryGear; const Q_e = Number(this.day2_heroGrowth.epicGearQuantity) || 0; const C_e = this.day2_heroGrowth.costs.epicGear; const T_e = this.day2_heroGrowth_forgingDurationEpicMinutes; const P_e = this.day2_heroGrowth.pointsPerUnit.epicGear; const Q_r = Number(this.day2_heroGrowth.rareGearQuantity) || 0; const C_r = this.day2_heroGrowth.costs.rareGear; const T_r = this.day2_heroGrowth_forgingDurationRareMinutes; const P_r = this.day2_heroGrowth.pointsPerUnit.rareGear; const M_total = Number(this.day2_heroGrowth.meteorResources) || 0; const S_total = this.day2_heroGrowth_speedUpsTotalMinutes; let maxPoints = 0; let bestSuggestion = { rare: 0, epic: 0, legendary: 0 }; let finalRemainingMeteorResources = M_total; let finalRemainingSpeedUpMinutes = S_total; const limit_l_qty = Q_l; const limit_l_meteor = (C_l > 0) ? Math.floor(M_total / C_l) : (M_total >=0 ? Infinity : 0); const limit_l_time = (T_l > 0) ? Math.floor(S_total / T_l) : (S_total >= 0 ? Infinity : 0); const max_nl = Math.max(0, Math.min(limit_l_qty, limit_l_meteor, limit_l_time)); for (let nl = 0; nl <= max_nl; nl++) { const costM_l = nl * C_l; const costT_l = nl * T_l; const points_l = nl * P_l; const remM_after_l = M_total - costM_l; const remT_after_l = S_total - costT_l; const limit_e_qty = Q_e; const limit_e_meteor = (C_e > 0) ? Math.floor(remM_after_l / C_e) : (remM_after_l >= 0 ? Infinity : 0); const limit_e_time = (T_e > 0) ? Math.floor(remT_after_l / T_e) : (remT_after_l >= 0 ? Infinity : 0); const max_ne = Math.max(0, Math.min(limit_e_qty, limit_e_meteor, limit_e_time)); for (let ne = 0; ne <= max_ne; ne++) { const costM_e = ne * C_e; const costT_e = ne * T_e; const points_e = ne * P_e; const remM_after_e = remM_after_l - costM_e; const remT_after_e = remT_after_l - costT_e; const limit_r_qty = Q_r; const limit_r_meteor = (C_r > 0) ? Math.floor(remM_after_e / C_r) : (remM_after_e >= 0 ? Infinity : 0); const limit_r_time = (T_r > 0) ? Math.floor(remT_after_e / T_r) : (remT_after_e >= 0 ? Infinity : 0); let nr = Math.max(0, Math.min(limit_r_qty, limit_r_meteor, limit_r_time)); const points_r = nr * P_r; const currentTotalPoints = points_l + points_e + points_r; if (currentTotalPoints > maxPoints) { maxPoints = currentTotalPoints; bestSuggestion = { legendary: nl, epic: ne, rare: nr }; finalRemainingMeteorResources = remM_after_e - (nr * C_r); finalRemainingSpeedUpMinutes = remT_after_e - (nr * T_r); } else if (currentTotalPoints === maxPoints) { if (nl > bestSuggestion.legendary) { bestSuggestion = { legendary: nl, epic: ne, rare: nr }; finalRemainingMeteorResources = remM_after_e - (nr * C_r); finalRemainingSpeedUpMinutes = remT_after_e - (nr * T_r); } else if (nl === bestSuggestion.legendary && ne > bestSuggestion.epic) { bestSuggestion = { legendary: nl, epic: ne, rare: nr }; finalRemainingMeteorResources = remM_after_e - (nr * C_r); finalRemainingSpeedUpMinutes = remT_after_e - (nr * T_r); } } } } return { ...bestSuggestion, remainingMeteorResources: Math.max(0, finalRemainingMeteorResources), remainingSpeedUpMinutes: Math.max(0, finalRemainingSpeedUpMinutes)}; },
                 day2_heroGrowth_craftedGearPoints() { const ppu = this.day2_heroGrowth.pointsPerUnit; const suggested = this.day2_heroGrowth_suggestedItems; return (suggested.rare * ppu.rareGear) + (suggested.epic * ppu.epicGear) + (suggested.legendary * ppu.legendaryGear); },
                 day2_heroGrowth_pointsRaw() { const ppu = this.day2_heroGrowth.pointsPerUnit; const medalsPoints = (Number(this.day2_heroGrowth.epicHeroMedals) || 0) * ppu.epicMedal + (Number(this.day2_heroGrowth.legendaryHeroMedals) || 0) * ppu.legendaryMedal; const scrollsPoints = (Number(this.day2_heroGrowth.epicScrolls) || 0) * ppu.epicScroll + (Number(this.day2_heroGrowth.legendaryScrolls) || 0) * ppu.legendaryScroll; return medalsPoints + scrollsPoints + this.day2_heroGrowth_craftedGearPoints; },
                 day2_heroGrowth_formattedPoints() { return this.formatPoints(this.day2_heroGrowth_pointsRaw); },
