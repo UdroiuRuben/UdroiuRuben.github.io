@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Points Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .calculator-container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 750px; 
+            margin: 2rem auto;
+        }
+        .category-section {
+            border: 1px solid #e5e7eb; 
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .input-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #374151;
+        }
+        .input-field, .select-field {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            transition: border-color 0.2s;
+        }
+        .input-field:focus, .select-field:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+        .total-points-display {
+            background-color: #eef2ff;
+            color: #4338ca;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1.125rem; 
+            font-weight: 600;
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        .grand-total-points-display {
+            background-color: #dcfce7;
+            color: #166534;
+            padding: 1.25rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            text-align: center;
+            margin-top: 2rem;
+        }
+        .section-title {
+            font-size: 1.5rem; 
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 0.75rem;
+        }
+        .sub-section-title {
+            font-size: 1.125rem; /* 18px */
+            font-weight: 600;
+            color: #374151; /* Tailwind gray-700 */
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #f3f4f6; /* Tailwind gray-100 */
+        }
+        .app-title {
+            font-size: 2rem; 
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .info-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.25rem; 
+        }
+        .time-conversion-display {
+            font-size: 0.875rem;
+            color: #4b5563; 
+            margin-left: 0.5rem;
+            font-style: italic;
+        }
+        .suggestion-box {
+            background-color: #f9fafb;
+            border: 1px dashed #d1d5db;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+        }
+        .suggestion-step {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .suggestion-step:last-child {
+            border-bottom: none;
+        }
+        .tier-input-section {
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
+        .tier-input-section:first-child {
+            border-top: none;
+            padding-top: 0;
+            margin-top: 0;
+        }
+        .flex-container {
+            display: flex;
+            align-items: center;
+        }
+        .flex-grow {
+            flex-grow: 1;
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app" class="calculator-container">
+        <h1 class="app-title">Universal Points Calculator</h1>
+
+        <div class="category-section">
+            <h2 class="section-title">Day 1: Tribes</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div>
+                    <label for="d1_availableStamina" class="input-label">Available Stamina:</label> 
+                    <input type="number" id="d1_availableStamina" v-model.number="day1_tribes.availableStamina" min="0" class="input-field" placeholder="e.g., 1000">
+                    <p class="info-text mt-1">Enter the total available stamina.</p>
+                </div>
+                <div>
+                    <label for="d1_tribeLevel" class="input-label">Tribe Level: Points</label>
+                    <select id="d1_tribeLevel" v-model.number="day1_tribes.selectedTribeLevelPoints" class="select-field">
+                        <option disabled value="">Choose level</option>
+                        <option v-for="level in day1_tribes.levels" :key="level.value" :value="level.value">
+                            {{ level.text }}
+                        </option>
+                    </select>
+                     <p class="info-text mt-1">Select the tribe level multiplier.</p>
+                </div>
+            </div>
+            <div v-if="day1_tribes_totalPointsRaw >= 0" class="total-points-display">
+                Total Day 1 Points: {{ day1_tribes_formattedTotalPoints }}
+            </div>
+        </div>
+
+        <div class="category-section">
+            <h2 class="section-title">Day 2: Hero Growth</h2>
+            <h3 class="sub-section-title">Gear Crafting</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div>
+                    <label for="d2_hg_rareGearQuantity" class="input-label">Rare Gear Quantity:</label>
+                    <input type="number" id="d2_hg_rareGearQuantity" v-model.number="day2_heroGrowth.rareGearQuantity" min="0" class="input-field" placeholder="e.g., 10">
+                    <p class="info-text">Cost: {{ formatPoints(day2_heroGrowth.costs.rareGear) }} meteor resources/item</p>
+                    <p class="info-text">Points: {{ formatPoints(day2_heroGrowth.pointsPerUnit.rareGear) }}/item</p>
+                </div>
+                <div>
+                    <label for="d2_hg_epicGearQuantity" class="input-label">Epic Gear Quantity:</label>
+                    <input type="number" id="d2_hg_epicGearQuantity" v-model.number="day2_heroGrowth.epicGearQuantity" min="0" class="input-field" placeholder="e.g., 5">
+                    <p class="info-text">Cost: {{ formatPoints(day2_heroGrowth.costs.epicGear) }} meteor resources/item</p>
+                    <p class="info-text">Points: {{ formatPoints(day2_heroGrowth.pointsPerUnit.epicGear) }}/item</p>
+                </div>
+                <div>
+                    <label for="d2_hg_legendaryGearQuantity" class="input-label">Legendary Gear Quantity:</label>
+                    <input type="number" id="d2_hg_legendaryGearQuantity" v-model.number="day2_heroGrowth.legendaryGearQuantity" min="0" class="input-field" placeholder="e.g., 2">
+                    <p class="info-text">Cost: {{ formatPoints(day2_heroGrowth.costs.legendaryGear) }} meteor resources/item</p>
+                    <p class="info-text">Points: {{ formatPoints(day2_heroGrowth.pointsPerUnit.legendaryGear) }}/item</p>
+                </div>
+            </div>
+            <div class="mb-4">
+                <label for="d2_hg_meteorResources" class="input-label">Available Meteor Resources:</label>
+                <input type="number" id="d2_hg_meteorResources" v-model.number="day2_heroGrowth.meteorResources" min="0" class="input-field" placeholder="e.g., 10000">
+            </div>
+            <h3 class="sub-section-title">Forging Durations & Speed-ups</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-4">
+                <div>
+                    <label for="d2_hg_forgingDurationRareStr" class="input-label">Rare Gear Forging (HH:MM):</label>
+                    <div class="flex-container">
+                        <input type="text" id="d2_hg_forgingDurationRareStr" v-model="day2_heroGrowth.forgingDurationRareStr" class="input-field flex-grow" placeholder="e.g., 00:30">
+                        <span v-if="day2_heroGrowth_forgingDurationRareMinutes > 0" class="time-conversion-display">({{ day2_heroGrowth_forgingDurationRareMinutes }} min)</span>
+                    </div>
+                </div>
+                 <div>
+                    <label for="d2_hg_forgingDurationEpicStr" class="input-label">Epic Gear Forging (HH:MM):</label>
+                    <div class="flex-container">
+                        <input type="text" id="d2_hg_forgingDurationEpicStr" v-model="day2_heroGrowth.forgingDurationEpicStr" class="input-field flex-grow" placeholder="e.g., 02:00">
+                        <span v-if="day2_heroGrowth_forgingDurationEpicMinutes > 0" class="time-conversion-display">({{ day2_heroGrowth_forgingDurationEpicMinutes }} min)</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="d2_hg_forgingDurationLegendaryStr" class="input-label">Legendary Gear Forging (HH:MM):</label>
+                    <div class="flex-container">
+                        <input type="text" id="d2_hg_forgingDurationLegendaryStr" v-model="day2_heroGrowth.forgingDurationLegendaryStr" class="input-field flex-grow" placeholder="e.g., 08:00">
+                        <span v-if="day2_heroGrowth_forgingDurationLegendaryMinutes > 0" class="time-conversion-display">({{ day2_heroGrowth_forgingDurationLegendaryMinutes }} min)</span>
+                    </div>
+                </div>
+                <div>
+                    <label for="d2_hg_speedUpsStr" class="input-label">Available Speed-ups (DD:HH:MM):</label>
+                     <div class="flex-container">
+                        <input type="text" id="d2_hg_speedUpsStr" v-model="day2_heroGrowth.speedUpsStr" class="input-field flex-grow" placeholder="e.g., 1:12:30">
+                        <span v-if="day2_heroGrowth_speedUpsTotalMinutes > 0" class="time-conversion-display">({{ day2_heroGrowth_speedUpsTotalMinutes }} min)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="suggestion-box">
+                <h4 class="font-semibold text-gray-700 mb-1">Optimal Item Crafting Suggestion (Max Points):</h4>
+                <template v-if="day2_heroGrowth_hasMinimumInputsForSuggestion">
+                    <div v-if="day2_heroGrowth_suggestedItems.legendary > 0 || day2_heroGrowth_suggestedItems.epic > 0 || day2_heroGrowth_suggestedItems.rare > 0">
+                        <p>
+                            Craft: 
+                            <span v-if="day2_heroGrowth_suggestedItems.legendary > 0">{{ day2_heroGrowth_suggestedItems.legendary }} Legendary</span>
+                            <span v-if="day2_heroGrowth_suggestedItems.legendary > 0 && (day2_heroGrowth_suggestedItems.epic > 0 || day2_heroGrowth_suggestedItems.rare > 0)">, </span>
+                            <span v-if="day2_heroGrowth_suggestedItems.epic > 0">{{ day2_heroGrowth_suggestedItems.epic }} Epic</span>
+                            <span v-if="day2_heroGrowth_suggestedItems.epic > 0 && day2_heroGrowth_suggestedItems.rare > 0">, </span>
+                            <span v-if="day2_heroGrowth_suggestedItems.rare > 0">{{ day2_heroGrowth_suggestedItems.rare }} Rare</span>
+                            Gear.
+                        </p>
+                        <p class="info-text mt-2">Points from crafted gear: {{ formatPoints(day2_heroGrowth_craftedGearPoints) }}</p>
+                    </div>
+                    <p v-else-if="day2_heroGrowth_hasAnyGearQuantities" class="text-gray-500">
+                        No items can be forged based on the current values and available resources/time.
+                    </p>
+                    <p v-else class="text-gray-500">
+                        Enter gear quantities to receive a crafting suggestion.
+                    </p>
+                    
+                    <p class="info-text mt-2">Remaining Resources: {{ formatPoints(day2_heroGrowth_suggestedItems.remainingMeteorResources) }}</p>
+                    <p class="info-text">Remaining Time: {{ formatPoints(day2_heroGrowth_suggestedItems.remainingSpeedUpMinutes) }} minutes</p>
+                </template>
+                <template v-else>
+                    <p class="text-gray-500">
+                        Please enter available meteor resources and at least one forging duration to see suggestions.
+                    </p>
+                </template>
+            </div>
+
+            <h3 class="sub-section-title">Medals & Scrolls</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div>
+                    <label for="d2_hg_epicHeroMedals" class="input-label">Epic Hero Medals to Use:</label>
+                    <input type="number" id="d2_hg_epicHeroMedals" v-model.number="day2_heroGrowth.epicHeroMedals" min="0" class="input-field" placeholder="e.g., 100">
+                    <p class="info-text">{{ formatPoints(day2_heroGrowth.pointsPerUnit.epicMedal) }} points/medal</p>
+                </div>
+                <div>
+                    <label for="d2_hg_legendaryHeroMedals" class="input-label">Legendary Hero Medals to Use:</label>
+                    <input type="number" id="d2_hg_legendaryHeroMedals" v-model.number="day2_heroGrowth.legendaryHeroMedals" min="0" class="input-field" placeholder="e.g., 20">
+                    <p class="info-text">{{ formatPoints(day2_heroGrowth.pointsPerUnit.legendaryMedal) }} points/medal</p>
+                </div>
+                <div>
+                    <label for="d2_hg_epicScrolls" class="input-label">Epic Scrolls to Use:</label>
+                    <input type="number" id="d2_hg_epicScrolls" v-model.number="day2_heroGrowth.epicScrolls" min="0" class="input-field" placeholder="e.g., 50">
+                    <p class="info-text">{{ formatPoints(day2_heroGrowth.pointsPerUnit.epicScroll) }} points/scroll</p>
+                </div>
+                <div>
+                    <label for="d2_hg_legendaryScrolls" class="input-label">Legendary Scrolls to Use:</label>
+                    <input type="number" id="d2_hg_legendaryScrolls" v-model.number="day2_heroGrowth.legendaryScrolls" min="0" class="input-field" placeholder="e.g., 10">
+                    <p class="info-text">{{ formatPoints(day2_heroGrowth.pointsPerUnit.legendaryScroll) }} points/scroll</p>
+                </div>
+            </div>
+            <div v-if="day2_heroGrowth_pointsRaw >= 0" class="total-points-display">
+                Total Day 2 Points: {{ day2_heroGrowth_formattedPoints }}
+            </div>
+        </div>
+
+        <div class="category-section">
+            <h2 class="section-title">Day 3: Resources Gathering</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                <div>
+                    <label for="d3_rg_resourcesGathered" class="input-label">Resources Gathered:</label>
+                    <input type="number" id="d3_rg_resourcesGathered" v-model.number="day3_resourcesGathering.resourcesGathered" min="0" class="input-field" placeholder="e.g., 500000">
+                    <p class="info-text mt-1">For 100 resources you get 1 point.</p>
+                </div>
+                <div>
+                    <label for="d3_rg_legendaryAdventSpins" class="input-label">Legendary Advent Spins:</label>
+                    <input type="number" id="d3_rg_legendaryAdventSpins" v-model.number="day3_resourcesGathering.legendaryAdventSpins" min="0" class="input-field" placeholder="e.g., 10">
+                    <p class="info-text mt-1">1 spin = {{formatPoints(day3_resourcesGathering.pointsPerUnit.adventSpin)}} points.</p>
+                </div>
+            </div>
+            <div v-if="day3_resourcesGathering_pointsRaw >= 0" class="total-points-display">
+                Total Day 3 Points: {{ day3_resourcesGathering_formattedPoints }}
+            </div>
+        </div>
+
+        <div class="category-section">
+            <h2 class="section-title">Day 4: Race Against Time</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-4">
+                <div>
+                    <label for_d4_rat_buildingSpeedUpStr class="input-label">Available Building Speed-up (DD:HH:MM):</label>
+                    <div class="flex-container">
+                        <input type="text" id="d4_rat_buildingSpeedUpStr" v-model="day4_raceAgainstTime.buildingSpeedUpStr" class="input-field flex-grow" placeholder="e.g., 2:05:30">
+                        <span v-if="day4_rat_buildingSpeedUpMinutes > 0" class="time-conversion-display">({{ formatPoints(day4_rat_buildingSpeedUpMinutes) }} min)</span>
+                    </div>
+                </div>
+                <div>
+                    <label for_d4_rat_researchSpeedUpStr class="input-label">Available Research Speed-up (DD:HH:MM):</label>
+                    <div class="flex-container">
+                        <input type="text" id="d4_rat_researchSpeedUpStr" v-model="day4_raceAgainstTime.researchSpeedUpStr" class="input-field flex-grow" placeholder="e.g., 1:00:00">
+                        <span v-if="day4_rat_researchSpeedUpMinutes > 0" class="time-conversion-display">({{ formatPoints(day4_rat_researchSpeedUpMinutes) }} min)</span>
+                    </div>
+                </div>
+                 <div>
+                    <label for="d4_rat_consumedBuildingSpeedUp" class="input-label">Consume Building Speed-up (minutes):</label>
+                    <input type="number" id="d4_rat_consumedBuildingSpeedUp" v-model.number="day4_raceAgainstTime.consumedBuildingSpeedUp" min="0" class="input-field" :max="day4_rat_buildingSpeedUpMinutes" placeholder="e.g., 60">
+                    <p class="info-text mt-1">Total available: {{ formatPoints(day4_rat_buildingSpeedUpMinutes) }} min. 1 minute = {{day4_raceAgainstTime.pointsPerUnit.speedUp}} points.</p>
+                </div>
+                <div>
+                    <label for="d4_rat_consumedResearchSpeedUp" class="input-label">Consume Research Speed-up (minutes):</label>
+                    <input type="number" id="d4_rat_consumedResearchSpeedUp" v-model.number="day4_raceAgainstTime.consumedResearchSpeedUp" min="0" class="input-field" :max="day4_rat_researchSpeedUpMinutes" placeholder="e.g., 30">
+                     <p class="info-text mt-1">Total available: {{ formatPoints(day4_rat_researchSpeedUpMinutes) }} min. 1 minute = {{day4_raceAgainstTime.pointsPerUnit.speedUp}} points.</p>
+                </div>
+            </div>
+             <div class="mb-4">
+                <label for="d4_rat_fineCrafts" class="input-label">Crafts in Fine Crafting:</label>
+                <input type="number" id="d4_rat_fineCrafts" v-model.number="day4_raceAgainstTime.fineCrafts" min="0" class="input-field" placeholder="e.g., 5">
+                <p class="info-text mt-1">1 craft = {{formatPoints(day4_raceAgainstTime.pointsPerUnit.fineCraft)}} points.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                    <label for="d4_rat_copperSand" class="input-label">Used Copper Sand:</label>
+                    <input type="number" id="d4_rat_copperSand" v-model.number="day4_raceAgainstTime.copperSand" min="0" class="input-field" placeholder="e.g., 100">
+                    <p class="info-text mt-1">1 = {{formatPoints(day4_raceAgainstTime.pointsPerUnit.copperSand)}} pts.</p>
+                </div>
+                <div>
+                    <label for="d4_rat_silverSand" class="input-label">Used Silver Sand:</label>
+                    <input type="number" id="d4_rat_silverSand" v-model.number="day4_raceAgainstTime.silverSand" min="0" class="input-field" placeholder="e.g., 50">
+                    <p class="info-text mt-1">1 = {{formatPoints(day4_raceAgainstTime.pointsPerUnit.silverSand)}} pts.</p>
+                </div>
+                <div>
+                    <label for="d4_rat_fineGold" class="input-label">Used Fine Gold:</label>
+                    <input type="number" id="d4_rat_fineGold" v-model.number="day4_raceAgainstTime.fineGold" min="0" class="input-field" placeholder="e.g., 20">
+                    <p class="info-text mt-1">1 = {{formatPoints(day4_raceAgainstTime.pointsPerUnit.fineGold)}} pts.</p>
+                </div>
+                 <div> <label for="d4_rat_meteorSteel" class="input-label">Used Meteor Steel:</label>
+                    <input type="number" id="d4_rat_meteorSteel" v-model.number="day4_raceAgainstTime.meteorSteel" min="0" class="input-field" placeholder="e.g., 5">
+                    <p class="info-text mt-1">1 = {{formatPoints(day4_raceAgainstTime.pointsPerUnit.meteorSteel)}} pts.</p>
+                </div>
+            </div>
+            <div v-if="day4_raceAgainstTime_pointsRaw >= 0" class="total-points-display">
+                Total Day 4 Points: {{ day4_raceAgainstTime_formattedPoints }}
+            </div>
+        </div>
+
+        <div class="category-section">
+            <h2 class="section-title">Day 5: Unit Training</h2>
+            <div class="mb-4">
+                <label for="d5_ut_trainingSpeedUpStr" class="input-label">Available Training Speed-up (DD:HH:MM):</label>
+                <div class="flex-container">
+                    <input type="text" id="d5_ut_trainingSpeedUpStr" v-model="day5_unitTraining.availableTrainingSpeedUpStr" class="input-field flex-grow" placeholder="e.g., 3:00:00">
+                    <span v-if="day5_ut_trainingSpeedUpMinutes > 0" class="time-conversion-display">({{ formatPoints(day5_ut_trainingSpeedUpMinutes) }} min)</span>
+                </div>
+            </div>
+
+            <div class="mb-4"> 
+                <label for="d5_ut_globalTrainingQuantity" class="input-label">Training Quantity per Batch:</label>
+                <input type="number" id="d5_ut_globalTrainingQuantity" v-model.number="day5_unitTraining.globalTrainingQuantity" min="1" class="input-field" placeholder="e.g., 100">
+                <p class="info-text mt-1">This quantity applies to each training action suggested.</p>
+            </div>
+
+            <div class="mb-6">
+                <label for="d5_ut_maxTier" class="input-label">Select Max Available Troop Tier:</label>
+                <select id="d5_ut_maxTier" v-model.number="day5_unitTraining.maxAvailableTier" class="select-field">
+                    <option :value="null" disabled>Choose max tier</option>
+                    <option v-for="tierDef in day5_unitTraining.tierDefinitions" :key="tierDef.level" :value="tierDef.level">
+                        {{ tierDef.name }}
+                    </option>
+                </select>
+            </div>
+
+            <div v-if="day5_unitTraining.maxAvailableTier">
+                <h3 class="sub-section-title">Troop Tier Details:</h3>
+                <div v-for="userDataTier in day5_unitTraining_visibleTiersUserData" :key="userDataTier.level" class="tier-input-section grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                    <h4 class="md:col-span-2 text-md font-semibold text-indigo-600 mb-2">Tier {{ getTierDefinition(userDataTier.level).name }} ({{ formatPoints(getTierDefinition(userDataTier.level).trainingPoints) }} points/unit for training)</h4>
+                    <div>
+                        <label :for="'d5_ut_existingQty_T' + userDataTier.level" class="input-label">Existing {{ getTierDefinition(userDataTier.level).name }} Troops:</label>
+                        <input type="number" :id="'d5_ut_existingQty_T' + userDataTier.level" v-model.number="userDataTier.existingQty" min="0" class="input-field" placeholder="e.g., 1000">
+                    </div>
+                    <div> 
+                        <label :for="'d5_ut_trainingDurationStr_T' + userDataTier.level" class="input-label">Training Duration per Batch (HH:MM):</label>
+                        <div class="flex-container">
+                            <input type="text" :id="'d5_ut_trainingDurationStr_T' + userDataTier.level" v-model="userDataTier.trainingDurationPerBatchStr" class="input-field flex-grow" placeholder="e.g., 00:05">
+                            <span v-if="getTierTrainingDurationPerBatchMinutes(userDataTier.level) > 0" class="time-conversion-display">({{ getTierTrainingDurationPerBatchMinutes(userDataTier.level) }} min)</span>
+                        </div>
+                    </div>
+                    
+                    <div v-if="userDataTier.level < 7 && userDataTier.level < day5_unitTraining.maxAvailableTier" class="md:col-span-2 mt-2">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                            <div>
+                                <label :for="'d5_ut_promotionQty_T' + userDataTier.level" class="input-label"> Promote {{ getTierDefinition(userDataTier.level).name }} to T{{userDataTier.level + 1}} Quantity (Batch Size):
+                                </label>
+                                <input type="number" :id="'d5_ut_promotionQty_T' + userDataTier.level" v-model.number="userDataTier.promotionQtyToNext" min="0" class="input-field" placeholder="e.g., 50">
+                                <p class="info-text">Points: {{ formatPoints(day5_unitTraining_getPromotionPoints(userDataTier.level)) }}/unit.</p>
+                            </div>
+                            <div>
+                                <label :for="'d5_ut_promotionDurationStr_T' + userDataTier.level" class="input-label">
+                                    Promotion Duration for Batch of {{formatPoints(userDataTier.promotionQtyToNext) || 0}} Units (HH:MM):
+                                </label>
+                                <div class="flex-container">
+                                    <input type="text" :id="'d5_ut_promotionDurationStr_T' + userDataTier.level" v-model="userDataTier.promotionDurationForBatchStr" class="input-field flex-grow" placeholder="e.g., 00:10">
+                                     <span v-if="getTierPromotionDurationForBatchMinutes(userDataTier.level) > 0" class="time-conversion-display">({{ getTierPromotionDurationForBatchMinutes(userDataTier.level) }} min)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="suggestion-box mt-6" v-if="day5_unitTraining.maxAvailableTier">
+                <h4 class="font-semibold text-gray-700 mb-2">Optimal Unit Actions Suggestion (using speed-ups):</h4>
+                <div v-if="day5_ut_orderedAndCompactedLog.length > 0"> <div v-for="(logEntry, index) in day5_ut_orderedAndCompactedLog" :key="index" class="suggestion-step">
+                        <p><b>Step {{ index + 1 }}:</b> {{ logEntry.description }}</p>
+                        <p class="text-sm text-gray-600 ml-4">Points from this step: {{ formatPoints(logEntry.points) }}</p>
+                        <p class="text-sm text-gray-600 ml-4">Speed-up time remaining: {{ formatPoints(logEntry.timeRemainingAfter) }} min</p>
+                        <p v-if="logEntry.tierQtyAfter !== undefined" class="text-sm text-gray-600 ml-4">
+                            {{ logEntry.tierName }} quantity after: {{ formatPoints(logEntry.tierQtyAfter) }}
+                            <span v-if="logEntry.promotedToTierName && logEntry.promotedToTierQtyAfter !== undefined"> | {{ logEntry.promotedToTierName }} quantity after: {{ formatPoints(logEntry.promotedToTierQtyAfter) }}</span>
+                        </p>
+                    </div>
+                </div>
+                <p v-else class="text-gray-500">No actions suggested with current inputs and speed-ups. Try adjusting values or ensure training/promotion times are set.</p>
+                <p class="info-text mt-3 font-semibold">Total Points from Suggested Actions: {{ formatPoints(day5_ut_pointsFromSuggestedActions) }}</p>
+                <p class="info-text">Final Remaining Training Speed-up: {{ formatPoints(day5_ut_suggestionDetails.finalRemainingTime) }} minutes</p>
+            </div>
+            <div v-if="day5_unitTraining_pointsRaw >= 0" class="total-points-display">
+                Total Day 5 Points: {{ day5_unitTraining_formattedPoints }}
+            </div>
+        </div>
+
+        <div class="category-section">
+            <h2 class="section-title">Day 6: Power Increase</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="d6_powerConstructions" class="input-label">Power from Constructions:</label>
+                    <input type="number" id="d6_powerConstructions" v-model.number="day6_powerIncrease.constructionPower" min="0" class="input-field" placeholder="e.g., 100000">
+                    <p class="info-text">1 power = {{ day6_powerIncrease.pointsPerUnit.construction }} points</p>
+                </div>
+                <div>
+                    <label for="d6_powerResearches" class="input-label">Power from Researches:</label>
+                    <input type="number" id="d6_powerResearches" v-model.number="day6_powerIncrease.researchPower" min="0" class="input-field" placeholder="e.g., 200000">
+                    <p class="info-text">1 power = {{ day6_powerIncrease.pointsPerUnit.research }} points</p>
+                </div>
+                <div>
+                    <label for="d6_powerTraining" class="input-label">Power from Training:</label>
+                    <input type="number" id="d6_powerTraining" v-model.number="day6_powerIncrease.trainingPower" min="0" class="input-field" placeholder="e.g., 150000">
+                    <p class="info-text">1 power = {{ day6_powerIncrease.pointsPerUnit.training }} points</p>
+                </div>
+            </div>
+            <div v-if="day6_powerIncrease_pointsRaw >= 0" class="total-points-display">
+                Total Day 6 Points: {{ day6_powerIncrease_formattedPoints }}
+            </div>
+        </div>
+
+        <div class="category-section">
+            <h2 class="section-title">Day 7: Go All Out</h2>
+
+            <h3 class="sub-section-title">Tribes (Day 1 Fields)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-6">
+                <div>
+                    <label for="d7_availableStamina" class="input-label">Available Stamina:</label> 
+                    <input type="number" id="d7_availableStamina" v-model.number="day7_goAllOut.availableStamina" min="0" class="input-field" placeholder="e.g., 1000">
+                    <p class="info-text mt-1">Enter the total available stamina.</p>
+                </div>
+                <div>
+                    <label for="d7_tribeLevel" class="input-label">Tribe Level: Points</label>
+                    <select id="d7_tribeLevel" v-model.number="day7_goAllOut.selectedTribeLevelPoints" class="select-field">
+                        <option disabled value="">Choose level</option>
+                        <option v-for="level in day7_goAllOut.tribeLevels" :key="level.value" :value="level.value">
+                            {{ level.text }}
+                        </option>
+                    </select>
+                    <p class="info-text mt-1">Select the tribe level multiplier.</p>
+                </div>
+            </div>
+            
+            <h3 class="sub-section-title">Medals & Scrolls (Day 2 Fields)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-6">
+                <div>
+                    <label for="d7_epicHeroMedals" class="input-label">Epic Hero Medals to Use:</label>
+                    <input type="number" id="d7_epicHeroMedals" v-model.number="day7_goAllOut.epicHeroMedals" min="0" class="input-field" placeholder="e.g., 100">
+                    <p class="info-text">{{ formatPoints(day7_goAllOut.pointsPerUnit.epicMedalD2) }} points/medal</p>
+                </div>
+                <div>
+                    <label for="d7_legendaryHeroMedals" class="input-label">Legendary Hero Medals to Use:</label>
+                    <input type="number" id="d7_legendaryHeroMedals" v-model.number="day7_goAllOut.legendaryHeroMedals" min="0" class="input-field" placeholder="e.g., 20">
+                    <p class="info-text">{{ formatPoints(day7_goAllOut.pointsPerUnit.legendaryMedalD2) }} points/medal</p>
+                </div>
+                <div>
+                    <label for="d7_epicScrolls" class="input-label">Epic Scrolls to Use:</label>
+                    <input type="number" id="d7_epicScrolls" v-model.number="day7_goAllOut.epicScrolls" min="0" class="input-field" placeholder="e.g., 50">
+                    <p class="info-text">{{ formatPoints(day7_goAllOut.pointsPerUnit.epicScrollD2) }} points/scroll</p>
+                </div>
+                <div>
+                    <label for="d7_legendaryScrolls" class="input-label">Legendary Scrolls to Use:</label>
+                    <input type="number" id="d7_legendaryScrolls" v-model.number="day7_goAllOut.legendaryScrolls" min="0" class="input-field" placeholder="e.g., 10">
+                    <p class="info-text">{{ formatPoints(day7_goAllOut.pointsPerUnit.legendaryScrollD2) }} points/scroll</p>
+                </div>
+            </div>
+
+            <h3 class="sub-section-title">Resources & Advent (Day 3 Fields)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 mb-6">
+                <div>
+                    <label for="d7_resourcesGathered" class="input-label">Resources Gathered:</label>
+                    <input type="number" id="d7_resourcesGathered" v-model.number="day7_goAllOut.resourcesGathered" min="0" class="input-field" placeholder="e.g., 500000">
+                    <p class="info-text mt-1">For 100 resources you get 1 point.</p>
+                </div>
+                <div>
+                    <label for="d7_legendaryAdventSpins" class="input-label">Legendary Advent Spins:</label>
+                    <input type="number" id="d7_legendaryAdventSpins" v-model.number="day7_goAllOut.legendaryAdventSpins" min="0" class="input-field" placeholder="e.g., 10">
+                    <p class="info-text mt-1">1 spin = {{formatPoints(day7_goAllOut.pointsPerUnit.adventSpinD3)}} points.</p>
+                </div>
+            </div>
+
+            <h3 class="sub-section-title">Crafting & Rings (Day 4 Fields)</h3>
+            <div class="mb-4">
+                <label for="d7_fineCrafts" class="input-label">Crafts in Fine Crafting:</label>
+                <input type="number" id="d7_fineCrafts" v-model.number="day7_goAllOut.fineCrafts" min="0" class="input-field" placeholder="e.g., 5">
+                <p class="info-text mt-1">1 craft = {{formatPoints(day7_goAllOut.pointsPerUnit.fineCraftD4)}} points.</p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div>
+                    <label for="d7_copperSand" class="input-label">Used Copper Sand:</label>
+                    <input type="number" id="d7_copperSand" v-model.number="day7_goAllOut.copperSand" min="0" class="input-field" placeholder="e.g., 100">
+                    <p class="info-text mt-1">1 = {{formatPoints(day7_goAllOut.pointsPerUnit.copperSandD4)}} pts.</p>
+                </div>
+                <div>
+                    <label for="d7_silverSand" class="input-label">Used Silver Sand:</label>
+                    <input type="number" id="d7_silverSand" v-model.number="day7_goAllOut.silverSand" min="0" class="input-field" placeholder="e.g., 50">
+                    <p class="info-text mt-1">1 = {{formatPoints(day7_goAllOut.pointsPerUnit.silverSandD4)}} pts.</p>
+                </div>
+                <div>
+                    <label for="d7_fineGold" class="input-label">Used Fine Gold:</label>
+                    <input type="number" id="d7_fineGold" v-model.number="day7_goAllOut.fineGold" min="0" class="input-field" placeholder="e.g., 20">
+                    <p class="info-text mt-1">1 = {{formatPoints(day7_goAllOut.pointsPerUnit.fineGoldD4)}} pts.</p>
+                </div>
+                <div>
+                    <label for="d7_meteorSteel" class="input-label">Used Meteor Steel:</label>
+                    <input type="number" id="d7_meteorSteel" v-model.number="day7_goAllOut.meteorSteel" min="0" class="input-field" placeholder="e.g., 5">
+                    <p class="info-text mt-1">1 = {{formatPoints(day7_goAllOut.pointsPerUnit.meteorSteelD4)}} pts.</p>
+                </div>
+            </div>
+            
+            <h3 class="sub-section-title">Power Increase (Day 6 Fields)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <label for="d7_powerConstructions" class="input-label">Power from Constructions:</label>
+                    <input type="number" id="d7_powerConstructions" v-model.number="day7_goAllOut.constructionPower" min="0" class="input-field" placeholder="e.g., 100000">
+                    <p class="info-text">1 power = {{ day7_goAllOut.pointsPerUnit.constructionPowerD6 }} points</p>
+                </div>
+                <div>
+                    <label for="d7_powerResearches" class="input-label">Power from Researches:</label>
+                    <input type="number" id="d7_powerResearches" v-model.number="day7_goAllOut.researchPower" min="0" class="input-field" placeholder="e.g., 200000">
+                    <p class="info-text">1 power = {{ day7_goAllOut.pointsPerUnit.researchPowerD6 }} points</p>
+                </div>
+                <div>
+                    <label for="d7_powerTraining" class="input-label">Power from Training:</label>
+                    <input type="number" id="d7_powerTraining" v-model.number="day7_goAllOut.trainingPower" min="0" class="input-field" placeholder="e.g., 150000">
+                    <p class="info-text">1 power = {{ day7_goAllOut.pointsPerUnit.trainingPowerD6 }} points</p>
+                </div>
+            </div>
+
+            <div v-if="day7_goAllOut_pointsRaw >= 0" class="total-points-display">
+                Total Day 7 Points: {{ day7_goAllOut_formattedPoints }}
+            </div>
+        </div>
+        
+        <div v-if="grandTotalPointsRaw >= 0" class="grand-total-points-display">
+            Grand Total Points: {{ formattedGrandTotalPoints }}
+        </div>
+    </div>
+
+    <script>
+        const { createApp, computed, reactive, watch } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    day1_tribes: { /* ... existing data ... */ 
+                        availableStamina: null, selectedTribeLevelPoints: '',
+                        levels: [
+                            { text: 'Level 1-4: 50 Points', value: 50 }, { text: 'Level 5-8: 80 Points', value: 80 }, 
+                            { text: 'Level 9-12: 100 Points', value: 100 }, { text: 'Level 13-16: 150 Points', value: 150 },
+                            { text: 'Level 17-20: 180 Points', value: 180 }, { text: 'Level 21-24: 220 Points', value: 220 },
+                            { text: 'Level 25-28: 260 Points', value: 260 }, { text: 'Level 29-30: 300 Points', value: 300 }
+                        ]
+                    },
+                    day2_heroGrowth: { /* ... existing data ... */ 
+                        rareGearQuantity: null, epicGearQuantity: null, legendaryGearQuantity: null,
+                        meteorResources: null, forgingDurationRareStr: '', forgingDurationEpicStr: '',
+                        forgingDurationLegendaryStr: '', speedUpsStr: '', epicHeroMedals: null,
+                        legendaryHeroMedals: null, epicScrolls: null, legendaryScrolls: null,
+                        costs: { rareGear: 150, epicGear: 400, legendaryGear: 3000 },
+                        pointsPerUnit: { 
+                            epicMedal: 500, legendaryMedal: 2500, epicScroll: 350, legendaryScroll: 2000,
+                            rareGear: 1000, epicGear: 5000, legendaryGear: 30000
+                        }
+                    },
+                    day3_resourcesGathering: { /* ... existing data ... */ 
+                        resourcesGathered: null, legendaryAdventSpins: null,
+                        pointsPerUnit: { resourcePointRate: 0.01, adventSpin: 1000 }
+                    },
+                    day4_raceAgainstTime: { /* ... existing data ... */ 
+                        buildingSpeedUpStr: '', researchSpeedUpStr: '', consumedBuildingSpeedUp: null, 
+                        consumedResearchSpeedUp: null, fineCrafts: null, copperSand: null, silverSand: null, 
+                        fineGold: null, meteorSteel: null,
+                        pointsPerUnit: {
+                            speedUp: 30, fineCraft: 2000, copperSand: 400, silverSand: 1000,
+                            fineGold: 3000, meteorSteel: 20000
+                        }
+                    },
+                    day5_unitTraining: reactive({ /* ... existing data ... */
+                        availableTrainingSpeedUpStr: '', maxAvailableTier: null, globalTrainingQuantity: null, 
+                        tierDefinitions: [ 
+                            { level: 1, name: 'T1', trainingPoints: 2 }, { level: 2, name: 'T2', trainingPoints: 3 },
+                            { level: 3, name: 'T3', trainingPoints: 5 }, { level: 4, name: 'T4', trainingPoints: 10 },
+                            { level: 5, name: 'T5', trainingPoints: 20 }, { level: 6, name: 'T6', trainingPoints: 50 },
+                            { level: 7, name: 'T7', trainingPoints: 100 }
+                        ],
+                        tiersUserData: [], 
+                    }),
+                    day6_powerIncrease: {
+                        constructionPower: null,
+                        researchPower: null,
+                        trainingPower: null,
+                        pointsPerUnit: {
+                            construction: 3,
+                            research: 6,
+                            training: 3
+                        }
+                    },
+                    day7_goAllOut: {
+                        availableStamina: null,
+                        selectedTribeLevelPoints: '',
+                        tribeLevels: [ 
+                            { text: 'Level 1-4: 50 Points', value: 50 }, { text: 'Level 5-8: 80 Points', value: 80 }, 
+                            { text: 'Level 9-12: 100 Points', value: 100 }, { text: 'Level 13-16: 150 Points', value: 150 },
+                            { text: 'Level 17-20: 180 Points', value: 180 }, { text: 'Level 21-24: 220 Points', value: 220 },
+                            { text: 'Level 25-28: 260 Points', value: 260 }, { text: 'Level 29-30: 300 Points', value: 300 }
+                        ],
+                        resourcesGathered: null,
+                        legendaryAdventSpins: null,
+                        fineCrafts: null,
+                        copperSand: null,
+                        silverSand: null,
+                        fineGold: null,
+                        meteorSteel: null,
+                        constructionPower: null,
+                        researchPower: null,
+                        trainingPower: null,
+                        epicHeroMedals: null,
+                        legendaryHeroMedals: null,
+                        epicScrolls: null,
+                        legendaryScrolls: null,
+                        pointsPerUnit: { // Suffixes indicate original day for clarity
+                            resourcePointRateD3: 0.01, 
+                            adventSpinD3: 1000,        
+                            fineCraftD4: 2000,         
+                            copperSandD4: 400,         
+                            silverSandD4: 1000,        
+                            fineGoldD4: 3000,          
+                            meteorSteelD4: 20000,      
+                            constructionPowerD6: 3,    
+                            researchPowerD6: 6,        
+                            trainingPowerD6: 3,        
+                            epicMedalD2: 500,          
+                            legendaryMedalD2: 2500,    
+                            epicScrollD2: 350,         
+                            legendaryScrollD2: 2000    
+                        }
+                    }
+                };
+            },
+            watch: { 
+                'day5_unitTraining.maxAvailableTier': {
+                    handler(newMaxTier) { this.initializeTiersUserData(newMaxTier); },
+                    immediate: false 
+                }
+            },
+            created() { 
+                this.initializeTiersUserData(this.day5_unitTraining.maxAvailableTier);
+            },
+            computed: {
+                // Day 1
+                day1_tribes_totalPointsRaw() { const stamina = Number(this.day1_tribes.availableStamina) || 0; const tribeMultiplier = Number(this.day1_tribes.selectedTribeLevelPoints) || 0; if (tribeMultiplier === 0 || stamina === 0) return 0; return (stamina / 5) * tribeMultiplier; },
+                day1_tribes_formattedTotalPoints() { return this.formatPoints(this.day1_tribes_totalPointsRaw); },
+                // Day 2
+                day2_heroGrowth_forgingDurationRareMinutes() { return this.parseHHMMToMinutes(this.day2_heroGrowth.forgingDurationRareStr); },
+                day2_heroGrowth_forgingDurationEpicMinutes() { return this.parseHHMMToMinutes(this.day2_heroGrowth.forgingDurationEpicStr); },
+                day2_heroGrowth_forgingDurationLegendaryMinutes() { return this.parseHHMMToMinutes(this.day2_heroGrowth.forgingDurationLegendaryStr); },
+                day2_heroGrowth_speedUpsTotalMinutes() { return this.parseDDHHMMToMinutes(this.day2_heroGrowth.speedUpsStr); },
+                day2_heroGrowth_hasMinimumInputsForSuggestion() { // NEW
+                    const hasMeteor = (Number(this.day2_heroGrowth.meteorResources) || 0) > 0;
+                    const hasTime = this.day2_heroGrowth_forgingDurationRareMinutes > 0 || 
+                                  this.day2_heroGrowth_forgingDurationEpicMinutes > 0 || 
+                                  this.day2_heroGrowth_forgingDurationLegendaryMinutes > 0;
+                    return hasMeteor && hasTime;
+                },
+                day2_heroGrowth_hasAnyGearQuantities() { // NEW
+                    return (Number(this.day2_heroGrowth.rareGearQuantity) || 0) > 0 ||
+                           (Number(this.day2_heroGrowth.epicGearQuantity) || 0) > 0 ||
+                           (Number(this.day2_heroGrowth.legendaryGearQuantity) || 0) > 0;
+                },
+                day2_heroGrowth_suggestedItems() { 
+                    // Only run full logic if minimum inputs are met
+                    if (!this.day2_heroGrowth_hasMinimumInputsForSuggestion) {
+                        return { rare: 0, epic: 0, legendary: 0, remainingMeteorResources: Number(this.day2_heroGrowth.meteorResources) || 0, remainingSpeedUpMinutes: this.day2_heroGrowth_speedUpsTotalMinutes };
+                    }
+                    const Q_l = Number(this.day2_heroGrowth.legendaryGearQuantity) || 0; const C_l = this.day2_heroGrowth.costs.legendaryGear; const T_l = this.day2_heroGrowth_forgingDurationLegendaryMinutes; const P_l = this.day2_heroGrowth.pointsPerUnit.legendaryGear; const Q_e = Number(this.day2_heroGrowth.epicGearQuantity) || 0; const C_e = this.day2_heroGrowth.costs.epicGear; const T_e = this.day2_heroGrowth_forgingDurationEpicMinutes; const P_e = this.day2_heroGrowth.pointsPerUnit.epicGear; const Q_r = Number(this.day2_heroGrowth.rareGearQuantity) || 0; const C_r = this.day2_heroGrowth.costs.rareGear; const T_r = this.day2_heroGrowth_forgingDurationRareMinutes; const P_r = this.day2_heroGrowth.pointsPerUnit.rareGear; const M_total = Number(this.day2_heroGrowth.meteorResources) || 0; const S_total = this.day2_heroGrowth_speedUpsTotalMinutes; let maxPoints = 0; let bestSuggestion = { rare: 0, epic: 0, legendary: 0 }; let finalRemainingMeteorResources = M_total; let finalRemainingSpeedUpMinutes = S_total; const limit_l_qty = Q_l; const limit_l_meteor = (C_l > 0) ? Math.floor(M_total / C_l) : (M_total >=0 ? Infinity : 0); const limit_l_time = (T_l > 0) ? Math.floor(S_total / T_l) : (S_total >= 0 ? Infinity : 0); const max_nl = Math.max(0, Math.min(limit_l_qty, limit_l_meteor, limit_l_time)); for (let nl = 0; nl <= max_nl; nl++) { const costM_l = nl * C_l; const costT_l = nl * T_l; const points_l = nl * P_l; const remM_after_l = M_total - costM_l; const remT_after_l = S_total - costT_l; const limit_e_qty = Q_e; const limit_e_meteor = (C_e > 0) ? Math.floor(remM_after_l / C_e) : (remM_after_l >= 0 ? Infinity : 0); const limit_e_time = (T_e > 0) ? Math.floor(remT_after_l / T_e) : (remT_after_l >= 0 ? Infinity : 0); const max_ne = Math.max(0, Math.min(limit_e_qty, limit_e_meteor, limit_e_time)); for (let ne = 0; ne <= max_ne; ne++) { const costM_e = ne * C_e; const costT_e = ne * T_e; const points_e = ne * P_e; const remM_after_e = remM_after_l - costM_e; const remT_after_e = remT_after_l - costT_e; const limit_r_qty = Q_r; const limit_r_meteor = (C_r > 0) ? Math.floor(remM_after_e / C_r) : (remM_after_e >= 0 ? Infinity : 0); const limit_r_time = (T_r > 0) ? Math.floor(remT_after_e / T_r) : (remT_after_e >= 0 ? Infinity : 0); let nr = Math.max(0, Math.min(limit_r_qty, limit_r_meteor, limit_r_time)); const points_r = nr * P_r; const currentTotalPoints = points_l + points_e + points_r; if (currentTotalPoints > maxPoints) { maxPoints = currentTotalPoints; bestSuggestion = { legendary: nl, epic: ne, rare: nr }; finalRemainingMeteorResources = remM_after_e - (nr * C_r); finalRemainingSpeedUpMinutes = remT_after_e - (nr * T_r); } else if (currentTotalPoints === maxPoints) { if (nl > bestSuggestion.legendary) { bestSuggestion = { legendary: nl, epic: ne, rare: nr }; finalRemainingMeteorResources = remM_after_e - (nr * C_r); finalRemainingSpeedUpMinutes = remT_after_e - (nr * T_r); } else if (nl === bestSuggestion.legendary && ne > bestSuggestion.epic) { bestSuggestion = { legendary: nl, epic: ne, rare: nr }; finalRemainingMeteorResources = remM_after_e - (nr * C_r); finalRemainingSpeedUpMinutes = remT_after_e - (nr * T_r); } } } } return { ...bestSuggestion, remainingMeteorResources: Math.max(0, finalRemainingMeteorResources), remainingSpeedUpMinutes: Math.max(0, finalRemainingSpeedUpMinutes)}; },
+                day2_heroGrowth_craftedGearPoints() { const ppu = this.day2_heroGrowth.pointsPerUnit; const suggested = this.day2_heroGrowth_suggestedItems; return (suggested.rare * ppu.rareGear) + (suggested.epic * ppu.epicGear) + (suggested.legendary * ppu.legendaryGear); },
+                day2_heroGrowth_pointsRaw() { const ppu = this.day2_heroGrowth.pointsPerUnit; const medalsPoints = (Number(this.day2_heroGrowth.epicHeroMedals) || 0) * ppu.epicMedal + (Number(this.day2_heroGrowth.legendaryHeroMedals) || 0) * ppu.legendaryMedal; const scrollsPoints = (Number(this.day2_heroGrowth.epicScrolls) || 0) * ppu.epicScroll + (Number(this.day2_heroGrowth.legendaryScrolls) || 0) * ppu.legendaryScroll; return medalsPoints + scrollsPoints + this.day2_heroGrowth_craftedGearPoints; },
+                day2_heroGrowth_formattedPoints() { return this.formatPoints(this.day2_heroGrowth_pointsRaw); },
+                // Day 3
+                day3_resourcesGathering_pointsRaw() { const resources = Number(this.day3_resourcesGathering.resourcesGathered) || 0; const spins = Number(this.day3_resourcesGathering.legendaryAdventSpins) || 0; const ppu = this.day3_resourcesGathering.pointsPerUnit; return (resources * ppu.resourcePointRate) + (spins * ppu.adventSpin); },
+                day3_resourcesGathering_formattedPoints() { return this.formatPoints(this.day3_resourcesGathering_pointsRaw); },
+                // Day 4
+                day4_rat_buildingSpeedUpMinutes() { return this.parseDDHHMMToMinutes(this.day4_raceAgainstTime.buildingSpeedUpStr); },
+                day4_rat_researchSpeedUpMinutes() { return this.parseDDHHMMToMinutes(this.day4_raceAgainstTime.researchSpeedUpStr); },
+                day4_raceAgainstTime_pointsRaw() { const data = this.day4_raceAgainstTime; const ppu = data.pointsPerUnit; const actualConsumedBuildingSU = Math.min(Number(data.consumedBuildingSpeedUp) || 0, this.day4_rat_buildingSpeedUpMinutes); const actualConsumedResearchSU = Math.min(Number(data.consumedResearchSpeedUp) || 0, this.day4_rat_researchSpeedUpMinutes); const pointsFromBuildingSU = actualConsumedBuildingSU * ppu.speedUp; const pointsFromResearchSU = actualConsumedResearchSU * ppu.speedUp; const pointsFromFineCrafts = (Number(data.fineCrafts) || 0) * ppu.fineCraft; const pointsFromCopper = (Number(data.copperSand) || 0) * ppu.copperSand; const pointsFromSilver = (Number(data.silverSand) || 0) * ppu.silverSand; const pointsFromGold = (Number(data.fineGold) || 0) * ppu.fineGold; const pointsFromMeteor = (Number(data.meteorSteel) || 0) * ppu.meteorSteel; return pointsFromBuildingSU + pointsFromResearchSU + pointsFromFineCrafts + pointsFromCopper + pointsFromSilver + pointsFromGold + pointsFromMeteor; },
+                day4_raceAgainstTime_formattedPoints() { return this.formatPoints(this.day4_raceAgainstTime_pointsRaw); },
+                // Day 5
+                day5_ut_trainingSpeedUpMinutes() { return this.parseDDHHMMToMinutes(this.day5_unitTraining.availableTrainingSpeedUpStr); },
+                day5_unitTraining_visibleTiersUserData() { if (!this.day5_unitTraining.maxAvailableTier) return []; return this.day5_unitTraining.tiersUserData.filter(ud => ud.level <= this.day5_unitTraining.maxAvailableTier); },
+                day5_ut_pointsFromManualPromotions() { let points = 0; if (!this.day5_unitTraining.maxAvailableTier) return 0; this.day5_unitTraining.tiersUserData.forEach(tier => { if (tier.level < 7 && tier.level < this.day5_unitTraining.maxAvailableTier) { const promotionQty = Number(tier.promotionQtyToNext) || 0; if (promotionQty > 0) { const promotionPointsPerUnit = this.day5_unitTraining_getPromotionPoints(tier.level); points += promotionQty * promotionPointsPerUnit; } } }); return points; },
+                day5_ut_suggestionDetails() { let timeRemaining = this.day5_ut_trainingSpeedUpMinutes; const maxTierSelected = this.day5_unitTraining.maxAvailableTier; const globalTrainQty = Number(this.day5_unitTraining.globalTrainingQuantity) || 0; if (!maxTierSelected || timeRemaining <= 0) { return { rawActions: [], totalPoints: 0, finalRemainingTime: timeRemaining }; } let simulatedTiers = JSON.parse(JSON.stringify(this.day5_unitTraining_visibleTiersUserData.map(ud => { const def = this.getTierDefinition(ud.level); return { level: def.level, name: def.name, currentQty: Number(ud.existingQty) || 0, trainingPoints: def.trainingPoints, trainingDurationPerBatchMinutes: this.getTierTrainingDurationPerBatchMinutes(ud.level), promotionUserBatchQty: Number(ud.promotionQtyToNext) || 0, promotionDurationForUserBatchMinutes: this.getTierPromotionDurationForBatchMinutes(ud.level), promotionPointsToNextTier: this.day5_unitTraining_getPromotionPoints(ud.level) }; }))); let rawActionSequence = []; let totalPointsFromActions = 0; while (timeRemaining > 0) { let candidateActions = []; if (globalTrainQty > 0) { for (const tier of simulatedTiers) { if (tier.level <= maxTierSelected && tier.trainingDurationPerBatchMinutes > 0) { const batchDuration = tier.trainingDurationPerBatchMinutes; if (batchDuration > 0 && batchDuration <= timeRemaining) { const batchPoints = tier.trainingPoints * globalTrainQty; const ppm = batchPoints / batchDuration; candidateActions.push({ type: 'train', tierLevel: tier.level, tierName: tier.name, ppm: ppm, duration: batchDuration, points: batchPoints, quantity: globalTrainQty, displaySortOrder: 100 + tier.level }); } } } } for (const tier of simulatedTiers) { if (tier.level < 7 && tier.level < maxTierSelected && tier.currentQty >= tier.promotionUserBatchQty && tier.promotionUserBatchQty > 0 && tier.promotionDurationForUserBatchMinutes > 0 && tier.promotionPointsToNextTier > 0) { const batchDuration = tier.promotionDurationForUserBatchMinutes; if (batchDuration > 0 && batchDuration <= timeRemaining) { const batchPoints = tier.promotionPointsToNextTier * tier.promotionUserBatchQty; const ppm = batchPoints / batchDuration; candidateActions.push({ type: 'promote_batch', fromTierLevel: tier.level, fromTierName: tier.name, toTierLevel: tier.level + 1, toTierName: this.getTierDefinition(tier.level + 1).name, ppm: ppm, duration: batchDuration, points: batchPoints, quantity: tier.promotionUserBatchQty, displaySortOrder: 200 + tier.level }); } } } if (candidateActions.length === 0) break; candidateActions.sort((a, b) => b.ppm - a.ppm); const bestAction = candidateActions[0]; if (!bestAction || bestAction.ppm <= 0 || bestAction.duration <= 0 || bestAction.duration > timeRemaining ) { break; } timeRemaining -= bestAction.duration; totalPointsFromActions += bestAction.points; if (bestAction.type === 'train') { const affectedTierSim = simulatedTiers.find(t => t.level === bestAction.tierLevel); if (affectedTierSim) affectedTierSim.currentQty += bestAction.quantity; } else if (bestAction.type === 'promote_batch') { const affectedTierSim = simulatedTiers.find(t => t.level === bestAction.fromTierLevel); const targetTierSim = simulatedTiers.find(t => t.level === bestAction.toTierLevel); if (affectedTierSim) affectedTierSim.currentQty -= bestAction.quantity; if (targetTierSim) targetTierSim.currentQty += bestAction.quantity; } rawActionSequence.push({...bestAction, timeRemainingAfterSnapshot: timeRemaining, simulatedTiersSnapshot: JSON.parse(JSON.stringify(simulatedTiers))}); } return { rawActions: rawActionSequence, totalPoints: totalPointsFromActions, finalRemainingTime: Math.max(0, timeRemaining) }; },
+                day5_ut_orderedAndCompactedLog() {const rawActions = this.day5_ut_suggestionDetails.rawActions; if (!rawActions || rawActions.length === 0) return []; let aggregatedActions = []; if (rawActions.length > 0) { let currentAggregatedAction = { ...rawActions[0], count: 1, totalQuantity: rawActions[0].quantity, totalPoints: rawActions[0].points }; for (let i = 1; i < rawActions.length; i++) { const prevActionDetails = currentAggregatedAction; const currentActionDetails = rawActions[i]; let actionsAreIdentical = prevActionDetails.type === currentActionDetails.type; if (actionsAreIdentical) { if (currentActionDetails.type === 'train') { actionsAreIdentical = prevActionDetails.tierLevel === currentActionDetails.tierLevel; } else if (currentActionDetails.type === 'promote_batch') { actionsAreIdentical = prevActionDetails.fromTierLevel === currentActionDetails.fromTierLevel && prevActionDetails.toTierLevel === currentActionDetails.toTierLevel; } } if (actionsAreIdentical) { currentAggregatedAction.count++; currentAggregatedAction.totalQuantity += currentActionDetails.quantity; currentAggregatedAction.totalPoints += currentActionDetails.points; currentAggregatedAction.timeRemainingAfterSnapshot = currentActionDetails.timeRemainingAfterSnapshot; currentAggregatedAction.simulatedTiersSnapshot = currentActionDetails.simulatedTiersSnapshot; } else { aggregatedActions.push(currentAggregatedAction); currentAggregatedAction = { ...currentActionDetails, count: 1, totalQuantity: currentActionDetails.quantity, totalPoints: currentActionDetails.points }; } } aggregatedActions.push(currentAggregatedAction); } let displayLog = []; let stepCounter = 0; aggregatedActions.forEach(action => { stepCounter++; let description = ""; let affectedTierName = action.tierName || action.fromTierName; let affectedTierSnapshot = action.simulatedTiersSnapshot.find(t => t.level === (action.tierLevel || action.fromTierLevel)); let affectedTierQtyAfter = affectedTierSnapshot ? affectedTierSnapshot.currentQty : undefined; let promotedToTierName = action.toTierName || null; let promotedToTierSnapshot = action.toTierLevel ? action.simulatedTiersSnapshot.find(t => t.level === action.toTierLevel) : null; let promotedToTierQtyAfter = promotedToTierSnapshot ? promotedToTierSnapshot.currentQty : null; if (action.type === 'train') { description = `Train ${action.count} batch${action.count > 1 ? 'es' : ''} of ${action.tierName} (${this.formatPoints(action.totalQuantity)} units)`; } else if (action.type === 'promote_batch') { description = `Promote ${action.count} batch${action.count > 1 ? 'es' : ''} (${this.formatPoints(action.totalQuantity)} units) of ${action.fromTierName} to ${action.toTierName}`; } displayLog.push({ step: stepCounter, description: description, points: action.totalPoints, timeRemainingAfter: action.timeRemainingAfterSnapshot, tierName: affectedTierName, tierQtyAfter: affectedTierQtyAfter, promotedToTierName: promotedToTierName, promotedToTierQtyAfter: promotedToTierQtyAfter, }); }); return displayLog;},
+                day5_ut_pointsFromSuggestedActions() { return this.day5_ut_suggestionDetails.totalPoints; },
+                day5_unitTraining_pointsRaw() { if (this.day5_ut_trainingSpeedUpMinutes > 0 && this.day5_ut_pointsFromSuggestedActions > 0) { return this.day5_ut_pointsFromSuggestedActions; } return this.day5_ut_pointsFromManualPromotions; },
+                day5_unitTraining_formattedPoints() { return this.formatPoints(this.day5_unitTraining_pointsRaw); },
+                // Day 6
+                day6_powerIncrease_pointsRaw() { const data = this.day6_powerIncrease; const ppu = data.pointsPerUnit; const constrPoints = (Number(data.constructionPower) || 0) * ppu.construction; const researchPoints = (Number(data.researchPower) || 0) * ppu.research; const trainingPoints = (Number(data.trainingPower) || 0) * ppu.training; return constrPoints + researchPoints + trainingPoints; },
+                day6_powerIncrease_formattedPoints() { return this.formatPoints(this.day6_powerIncrease_pointsRaw); },
+                // Day 7
+                day7_goAllOut_pointsRaw() { const d7 = this.day7_goAllOut; const ppu = d7.pointsPerUnit; let total = 0; const d7_stamina = Number(d7.availableStamina) || 0; const d7_tribeMultiplier = Number(d7.selectedTribeLevelPoints) || 0; if (d7_tribeMultiplier > 0 && d7_stamina > 0) { total += (d7_stamina / 5) * d7_tribeMultiplier; } total += (Number(d7.resourcesGathered) || 0) * ppu.resourcePointRateD3; total += (Number(d7.legendaryAdventSpins) || 0) * ppu.adventSpinD3; total += (Number(d7.fineCrafts) || 0) * ppu.fineCraftD4; total += (Number(d7.copperSand) || 0) * ppu.copperSandD4; total += (Number(d7.silverSand) || 0) * ppu.silverSandD4; total += (Number(d7.fineGold) || 0) * ppu.fineGoldD4; total += (Number(d7.meteorSteel) || 0) * ppu.meteorSteelD4; total += (Number(d7.constructionPower) || 0) * ppu.constructionPowerD6; total += (Number(d7.researchPower) || 0) * ppu.researchPowerD6; total += (Number(d7.trainingPower) || 0) * ppu.trainingPowerD6; total += (Number(d7.epicHeroMedals) || 0) * ppu.epicMedalD2; total += (Number(d7.legendaryHeroMedals) || 0) * ppu.legendaryMedalD2; total += (Number(d7.epicScrolls) || 0) * ppu.epicScrollD2; total += (Number(d7.legendaryScrolls) || 0) * ppu.legendaryScrollD2; return total; },
+                day7_goAllOut_formattedPoints() { return this.formatPoints(this.day7_goAllOut_pointsRaw); },
+
+                // Grand Total Calculation
+                grandTotalPointsRaw() {
+                    return this.day1_tribes_totalPointsRaw + 
+                           this.day2_heroGrowth_pointsRaw +
+                           this.day3_resourcesGathering_pointsRaw +
+                           this.day4_raceAgainstTime_pointsRaw +
+                           this.day5_unitTraining_pointsRaw +
+                           this.day6_powerIncrease_pointsRaw + 
+                           this.day7_goAllOut_pointsRaw;      
+                },
+                formattedGrandTotalPoints() {
+                    return this.formatPoints(this.grandTotalPointsRaw);
+                }
+            },
+            methods: {
+                initializeTiersUserData(maxTier) { 
+                    this.day5_unitTraining.tiersUserData = this.day5_unitTraining.tierDefinitions.map(def => ({
+                        level: def.level,
+                        existingQty: null,
+                        trainingDurationPerBatchStr: '', 
+                        promotionQtyToNext: (def.level < 7) ? null : undefined,
+                        promotionDurationForBatchStr: (def.level < 7) ? '' : undefined 
+                    }));
+                },
+                getTierDefinition(level) {
+                    return this.day5_unitTraining.tierDefinitions.find(def => def.level === level) || {};
+                },
+                getTierTrainingDurationPerBatchMinutes(tierLevel) {
+                    const userData = this.day5_unitTraining.tiersUserData.find(t => t.level === tierLevel);
+                    return userData ? this.parseHHMMToMinutes(userData.trainingDurationPerBatchStr) : 0;
+                },
+                getTierPromotionDurationForBatchMinutes(tierLevel) { 
+                    const userData = this.day5_unitTraining.tiersUserData.find(t => t.level === tierLevel);
+                    return userData ? this.parseHHMMToMinutes(userData.promotionDurationForBatchStr) : 0;
+                },
+                day5_unitTraining_getPromotionPoints(fromTierLevel) { 
+                    if (fromTierLevel >= 7) return 0;
+                    const currentTierDef = this.getTierDefinition(fromTierLevel); 
+                    const nextTierDef = this.getTierDefinition(fromTierLevel + 1); 
+                    if (currentTierDef && nextTierDef && currentTierDef.trainingPoints !== undefined && nextTierDef.trainingPoints !== undefined) {
+                        return nextTierDef.trainingPoints - currentTierDef.trainingPoints;
+                    }
+                    return 0;
+                },
+                formatPoints(points) { const numericPoints = Number(points); if (isNaN(numericPoints)) return '0'; if (Number.isInteger(numericPoints)) { return numericPoints.toLocaleString('en-US'); } else { const fixed = parseFloat(numericPoints.toFixed(2)); return fixed.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 }); } },
+                parseHHMMToMinutes(timeStr) { if (!timeStr || typeof timeStr !== 'string' || !/^\d{1,2}:\d{1,2}$/.test(timeStr)) return 0; const parts = timeStr.split(':'); const hours = parseInt(parts[0], 10); const minutes = parseInt(parts[1], 10); if (isNaN(hours) || isNaN(minutes) || hours < 0 || minutes < 0 || minutes > 59) return 0; return (hours * 60) + minutes; },
+                parseDDHHMMToMinutes(timeStr) { if (!timeStr || typeof timeStr !== 'string' || !/^\d{1,}:\d{1,2}:\d{1,2}$/.test(timeStr)) return 0; const parts = timeStr.split(':'); const days = parseInt(parts[0], 10); const hours = parseInt(parts[1], 10); const minutes = parseInt(parts[2], 10); if (isNaN(days) || isNaN(hours) || isNaN(minutes) || days < 0 || hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return 0; return (days * 24 * 60) + (hours * 60) + minutes; }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
