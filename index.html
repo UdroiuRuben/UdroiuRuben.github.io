@@ -1,149 +1,217 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en" :class="{ 'dark': isDarkMode }"> <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Mightiest Governor points calculator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
+        /* Light mode variables (can be overridden by dark mode) */
+        :root {
+            --bg-color: #f3f4f6;
+            --card-bg-color: white;
+            --text-color: #1f2937;
+            --label-color: #374151;
+            --input-border-color: #d1d5db;
+            --input-focus-border-color: #6366f1;
+            --info-text-color: #6b7280;
+            --total-bg-color: #eef2ff;
+            --total-text-color: #4338ca;
+            --grand-total-bg-color: #dcfce7;
+            --grand-total-text-color: #166534;
+            --section-border-color: #e5e7eb;
+            --suggestion-bg-color: #f9fafb;
+            --suggestion-border-color: #d1d5db;
+            --link-color: #4f46e5;
+            --button-bg-color: #6366f1;
+            --button-text-color: white;
+            --button-hover-bg-color: #4f46e5;
+        }
+
+        html.dark {
+            --bg-color: #111827; /* bg-gray-900 */
+            --card-bg-color: #1f2937; /* bg-gray-800 */
+            --text-color: #d1d5db; /* text-gray-300 */
+            --label-color: #9ca3af; /* text-gray-400 */
+            --input-border-color: #4b5563; /* border-gray-600 */
+            --input-focus-border-color: #818cf8; /* focus:border-indigo-400 */
+            --info-text-color: #9ca3af; /* text-gray-400 */
+            --total-bg-color: #3730a3; /* bg-indigo-700 */
+            --total-text-color: #e0e7ff; /* text-indigo-100 */
+            --grand-total-bg-color: #064e3b; /* bg-green-800 */
+            --grand-total-text-color: #d1fae5; /* text-green-100 */
+            --section-border-color: #374151; /* border-gray-700 */
+            --suggestion-bg-color: #374151; /* bg-gray-700 */
+            --suggestion-border-color: #4b5563; /* border-gray-600 */
+            --link-color: #a5b4fc; /* text-indigo-300 */
+            --button-bg-color: #4f46e5; /* bg-indigo-600 */
+            --button-text-color: #e0e7ff; /* text-indigo-100 */
+            --button-hover-bg-color: #4338ca; /* bg-indigo-700 */
+        }
+
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* Light gray background for the page */
+            background-color: var(--bg-color);
+            color: var(--text-color);
             display: flex; 
             flex-direction: column; 
             min-height: 100vh; 
+            transition: background-color 0.3s, color 0.3s;
         }
         .calculator-container {
-            background-color: white;
+            background-color: var(--card-bg-color);
             padding: 2rem;
             border-radius: 0.75rem;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            max-width: 850px; /* MODIFIED: Increased width */
+            max-width: 850px;
             margin: 2rem auto;
             flex-grow: 1; 
+            transition: background-color 0.3s;
         }
         .category-section {
-            border: 1px solid #e5e7eb; 
+            border: 1px solid var(--section-border-color); 
             border-radius: 0.5rem;
             padding: 1.5rem;
             margin-bottom: 2rem;
+            transition: border-color 0.3s;
         }
         .input-label {
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 500;
-            color: #374151;
+            color: var(--label-color);
+            transition: color 0.3s;
         }
         .input-field, .select-field {
             width: 100%;
             padding: 0.75rem;
-            border: 1px solid #d1d5db;
+            border: 1px solid var(--input-border-color);
             border-radius: 0.5rem;
-            transition: border-color 0.2s;
+            background-color: var(--card-bg-color); /* Match card or be slightly different */
+            color: var(--text-color);
+            transition: border-color 0.2s, background-color 0.3s, color 0.3s;
+        }
+        .input-field::placeholder {
+            color: var(--info-text-color);
         }
         .input-field:focus, .select-field:focus {
             outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            border-color: var(--input-focus-border-color);
+            box-shadow: 0 0 0 3px var(--input-focus-border-color-alpha, rgba(99, 102, 241, 0.2)); /* Fallback if alpha not set */
+        }
+        html.dark {
+            --input-focus-border-color-alpha: rgba(129, 140, 248, 0.3); /* For dark mode focus shadow */
         }
         .total-points-display {
-            background-color: #eef2ff;
-            color: #4338ca;
+            background-color: var(--total-bg-color);
+            color: var(--total-text-color);
             padding: 1rem 1.5rem;
             border-radius: 0.5rem;
             font-size: 1.125rem; 
             font-weight: 600;
             text-align: center;
             margin-top: 1.5rem;
+            transition: background-color 0.3s, color 0.3s;
         }
         .grand-total-points-display {
-            background-color: #dcfce7;
-            color: #166534;
+            background-color: var(--grand-total-bg-color);
+            color: var(--grand-total-text-color);
             padding: 1.25rem 1.5rem;
             border-radius: 0.5rem;
             font-size: 1.5rem; 
             font-weight: 700; 
             text-align: center;
             margin-top: 2rem;
+            transition: background-color 0.3s, color 0.3s;
         }
         .section-title {
             font-size: 1.5rem; 
             font-weight: 600;
-            color: #1f2937;
+            color: var(--text-color);
             margin-bottom: 1.5rem;
             text-align: center;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid var(--section-border-color);
             padding-bottom: 0.75rem;
+            transition: color 0.3s, border-color 0.3s;
         }
         .sub-section-title {
             font-size: 1.125rem; 
             font-weight: 600;
-            color: #374151; 
+            color: var(--label-color); 
             margin-top: 1.5rem;
             margin-bottom: 1rem;
             padding-bottom: 0.5rem;
-            border-bottom: 1px solid #f3f4f6; 
+            border-bottom: 1px solid var(--bg-color); 
+            transition: color 0.3s, border-color 0.3s;
         }
         .app-title {
             font-size: 2rem; 
             font-weight: 700;
-            color: #111827;
-            margin-bottom: 2rem;
+            color: var(--text-color);
+            margin-bottom: 1rem; /* Reduced margin for toggle button */
             text-align: center;
+            transition: color 0.3s;
         }
         .info-text {
             font-size: 0.875rem;
-            color: #6b7280;
+            color: var(--info-text-color);
             margin-top: 0.25rem; 
+            transition: color 0.3s;
         }
         .time-conversion-display {
             font-size: 0.875rem;
-            color: #4b5563; 
+            color: var(--label-color); 
             margin-left: 0.5rem;
             font-style: italic;
+            transition: color 0.3s;
         }
         .suggestion-box {
-            background-color: #f9fafb;
-            border: 1px dashed #d1d5db;
+            background-color: var(--suggestion-bg-color);
+            border: 1px dashed var(--suggestion-border-color);
             padding: 1rem;
             border-radius: 0.5rem;
             margin-top: 1.5rem;
             font-size: 0.9rem;
+            transition: background-color 0.3s, border-color 0.3s;
         }
         .suggestion-step {
             padding: 0.5rem 0;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--bg-color); /* Use page bg for softer lines */
+            transition: border-color 0.3s;
         }
         .suggestion-step:last-child {
             border-bottom: none;
         }
-        .tier-input-section {
-            border-top: 1px solid #eee;
-            padding-top: 1rem;
-            margin-top: 1rem;
-        }
-        .tier-input-section:first-child {
-            border-top: none;
-            padding-top: 0;
-            margin-top: 0;
-        }
-        .flex-container {
-            display: flex;
-            align-items: center;
-        }
-        .flex-grow {
-            flex-grow: 1;
-        }
+        .flex-container { display: flex; align-items: center; }
+        .flex-grow { flex-grow: 1; }
         .app-footer {
             text-align: center;
             padding: 1.5rem;
             font-size: 0.875rem; 
-            color: #6b7280; 
-            background-color: #f9fafb; 
-            border-top: 1px solid #e5e7eb; 
+            color: var(--info-text-color); 
+            background-color: var(--card-bg-color); 
+            border-top: 1px solid var(--section-border-color); 
             margin-top: auto; 
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
+        /* Dark Mode Toggle Button */
+        .dark-mode-toggle {
+            background-color: var(--button-bg-color);
+            color: var(--button-text-color);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            border: 1px solid transparent;
+        }
+        .dark-mode-toggle:hover {
+            background-color: var(--button-hover-bg-color);
+        }
+        html.dark .dark-mode-toggle { /* Specific styles for toggle in dark mode if needed */
+             border: 1px solid var(--input-border-color);
+        }
+
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -151,7 +219,13 @@
 </head>
 <body>
     <div id="app" class="calculator-container">
-        <h1 class="app-title">The Mightiest Governor points calculator</h1>
+        <div class="flex justify-between items-center mb-6"> <h1 class="app-title" style="margin-bottom: 0;">The Mightiest Governor points calculator</h1>
+            <button @click="toggleDarkMode" class="dark-mode-toggle">
+                <span v-if="isDarkMode">Light Mode</span>
+                <span v-else>Dark Mode</span>
+            </button>
+        </div>
+
 
         <div class="category-section">
             <h2 class="section-title">Day 1: Tribes</h2>
@@ -236,7 +310,7 @@
                 </div>
             </div>
             <div class="suggestion-box">
-                <h4 class="font-semibold text-gray-700 mb-1">Optimal Item Crafting Suggestion (Max Points):</h4>
+                <h4 class="font-semibold text-gray-700 mb-1 dark:text-gray-200">Optimal Item Crafting Suggestion (Max Points):</h4>
                 <template v-if="day2_heroGrowth_hasMinimumInputsForSuggestion">
                     <div v-if="day2_heroGrowth_suggestedItems.legendary > 0 || day2_heroGrowth_suggestedItems.epic > 0 || day2_heroGrowth_suggestedItems.rare > 0">
                         <p>
@@ -250,10 +324,10 @@
                         </p>
                         <p class="info-text mt-2">Points from crafted gear: {{ formatPoints(day2_heroGrowth_craftedGearPoints) }}</p>
                     </div>
-                    <p v-else-if="day2_heroGrowth_hasAnyGearQuantities" class="text-gray-500">
+                    <p v-else-if="day2_heroGrowth_hasAnyGearQuantities" class="text-gray-500 dark:text-gray-400">
                         No items can be forged based on the current values and available resources/time.
                     </p>
-                    <p v-else class="text-gray-500">
+                    <p v-else class="text-gray-500 dark:text-gray-400">
                         Enter gear quantities to receive a crafting suggestion.
                     </p>
                     
@@ -261,7 +335,7 @@
                     <p class="info-text">Remaining Time: {{ formatPoints(day2_heroGrowth_suggestedItems.remainingSpeedUpMinutes) }} minutes</p>
                 </template>
                 <template v-else>
-                    <p class="text-gray-500">
+                    <p class="text-gray-500 dark:text-gray-400">
                         Please enter available meteor resources and at least one forging duration to see suggestions.
                     </p>
                 </template>
@@ -402,7 +476,7 @@
             <div v-if="day5_unitTraining.maxAvailableTier">
                 <h3 class="sub-section-title">Troop Tier Details:</h3>
                 <div v-for="userDataTier in day5_unitTraining_visibleTiersUserData" :key="userDataTier.level" class="tier-input-section grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                    <h4 class="md:col-span-2 text-md font-semibold text-indigo-600 mb-2">Tier {{ getTierDefinition(userDataTier.level).name }} ({{ formatPoints(getTierDefinition(userDataTier.level).trainingPoints) }} points/unit for training)</h4>
+                    <h4 class="md:col-span-2 text-md font-semibold text-indigo-600 dark:text-indigo-400 mb-2">Tier {{ getTierDefinition(userDataTier.level).name }} ({{ formatPoints(getTierDefinition(userDataTier.level).trainingPoints) }} points/unit for training)</h4>
                     <div>
                         <label :for="'d5_ut_existingQty_T' + userDataTier.level" class="input-label">Existing {{ getTierDefinition(userDataTier.level).name }} Troops:</label>
                         <input type="number" :id="'d5_ut_existingQty_T' + userDataTier.level" v-model.number="userDataTier.existingQty" min="0" class="input-field" placeholder="e.g., 1000">
@@ -438,18 +512,18 @@
             </div>
 
             <div class="suggestion-box mt-6" v-if="day5_unitTraining.maxAvailableTier">
-                <h4 class="font-semibold text-gray-700 mb-2">Optimal Unit Actions Suggestion (using speed-ups):</h4>
+                <h4 class="font-semibold text-gray-700 mb-2 dark:text-gray-200">Optimal Unit Actions Suggestion (using speed-ups):</h4>
                 <div v-if="day5_ut_orderedAndCompactedLog.length > 0"> <div v-for="(logEntry, index) in day5_ut_orderedAndCompactedLog" :key="index" class="suggestion-step">
                         <p><b>Step {{ index + 1 }}:</b> {{ logEntry.description }}</p>
-                        <p class="text-sm text-gray-600 ml-4">Points from this step: {{ formatPoints(logEntry.points) }}</p>
-                        <p class="text-sm text-gray-600 ml-4">Speed-up time remaining: {{ formatPoints(logEntry.timeRemainingAfter) }} min</p>
-                        <p v-if="logEntry.tierQtyAfter !== undefined" class="text-sm text-gray-600 ml-4">
+                        <p class="text-sm text-gray-600 dark:text-gray-400 ml-4">Points from this step: {{ formatPoints(logEntry.points) }}</p>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 ml-4">Speed-up time remaining: {{ formatPoints(logEntry.timeRemainingAfter) }} min</p>
+                        <p v-if="logEntry.tierQtyAfter !== undefined" class="text-sm text-gray-600 dark:text-gray-400 ml-4">
                             {{ logEntry.tierName }} quantity after: {{ formatPoints(logEntry.tierQtyAfter) }}
                             <span v-if="logEntry.promotedToTierName && logEntry.promotedToTierQtyAfter !== undefined"> | {{ logEntry.promotedToTierName }} quantity after: {{ formatPoints(logEntry.promotedToTierQtyAfter) }}</span>
                         </p>
                     </div>
                 </div>
-                <p v-else class="text-gray-500">No actions suggested with current inputs and speed-ups. Try adjusting values or ensure training/promotion times are set.</p>
+                <p v-else class="text-gray-500 dark:text-gray-400">No actions suggested with current inputs and speed-ups. Try adjusting values or ensure training/promotion times are set.</p>
                 <p class="info-text mt-3 font-semibold">Total Points from Suggested Actions: {{ formatPoints(day5_ut_pointsFromSuggestedActions) }}</p>
                 <p class="info-text">Final Remaining Training Speed-up: {{ formatPoints(day5_ut_suggestionDetails.finalRemainingTime) }} minutes</p>
             </div>
@@ -608,6 +682,7 @@
         createApp({
             data() {
                 return {
+                    isDarkMode: false, // For Dark Mode Toggle
                     day1_tribes: { /* ... existing data ... */ 
                         availableStamina: null, selectedTribeLevelPoints: '',
                         levels: [
@@ -707,10 +782,26 @@
                 'day5_unitTraining.maxAvailableTier': {
                     handler(newMaxTier) { this.initializeTiersUserData(newMaxTier); },
                     immediate: false 
+                },
+                isDarkMode(newVal) { // Watch for changes in dark mode state
+                    if (newVal) {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+                    // Optional: Persist to localStorage
+                    // localStorage.setItem('isDarkMode', newVal);
                 }
             },
             created() { 
                 this.initializeTiersUserData(this.day5_unitTraining.maxAvailableTier);
+                 // Optional: Load dark mode preference from localStorage
+                // const savedDarkMode = localStorage.getItem('isDarkMode');
+                // if (savedDarkMode !== null) {
+                //    this.isDarkMode = JSON.parse(savedDarkMode);
+                // } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                //    this.isDarkMode = true; // Set based on OS preference if no saved preference
+                // }
             },
             computed: {
                 // Day 1
@@ -766,6 +857,9 @@
                 }
             },
             methods: {
+                toggleDarkMode() { // Method to toggle dark mode
+                    this.isDarkMode = !this.isDarkMode;
+                },
                 initializeTiersUserData(maxTier) { 
                     this.day5_unitTraining.tiersUserData = this.day5_unitTraining.tierDefinitions.map(def => ({
                         level: def.level,
